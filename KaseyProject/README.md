@@ -1,0 +1,1 @@
+This is Kasey's project on the bias of social media sataset for the Coding School Summer Research Program 2022.
