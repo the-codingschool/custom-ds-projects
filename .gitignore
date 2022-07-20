@@ -39,4 +39,9 @@ vignettes/*.pdf
 .Renviron
 
 # R project file
+<<<<<<< HEAD
 *.Rprod
+=======
+*.Rproj 
+# anything named .Rproj gets ignored
+>>>>>>> 2a8607c9e9e551266c3f3b838be02dd513278da4
