@@ -41,3 +41,10 @@ vignettes/*.pdf
 # R project file
 *.Rproj 
 # anything named .Rproj gets ignored
+
+
+*.DS_Store
+
+# markdown file after it got knit
+*visualization_learning.html
+
