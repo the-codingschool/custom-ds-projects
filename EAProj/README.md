@@ -1,3 +1,3 @@
-This is ktnsgm's project on new bias in social media for the Coding School Summer Research Program 2022.
+This is ktnsgm's project on the effect of crypto on GPU price for the Coding School Summer Research Program 2022.
 
-Here are some potential research questions:
+Research question(?): How have the plummeting and rising rates of crypto affected the GPU market? 
