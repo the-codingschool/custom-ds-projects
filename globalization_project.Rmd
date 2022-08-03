@@ -1,0 +1,259 @@
+---
+title: "Globalization: Differences between Brexit and Trump Election"
+author: "Jingjing Luo"
+date: "2022-08-02"
+output: html_document
+---
+
+##### Abstract
+
+This report looks into the differences between tweets made by British Parliament members who support Brexit and tweets made by Donald Trump during the 2016 election period. I tried to see whether certain types of language and sentiments correlate with different anti-globalization causes. First, I built a Starspace NLP model for both datasets that classifies **tweets** into *support for the cause* vs *against the cause* and compared the accuracies between the datasets. Then, I used the **text** to calculate and compare the sentiments of the groups. I found there to be a big difference in the type of language used between the two groups. In conclusion, there are many differences between people who support the same cause of anti-globalization.
+
+
+
+
+<br>
+
+##### Background
+I found the Election Dataset from [Kaggle](https://www.kaggle.com/datasets/benhamner/clinton-trump-tweets) and it consisted of ~3000 tweets from each of the 2016 US Presidential Election, Trump and Clinton. I found the Brexit Dataset from [Kaggle](https://www.kaggle.com/datasets/chadjinik/labelledbrexittweets) as well, and it consists of 60,941 tweets from 449 UK members of Parliament. I filtered out both datasets to be left with only Trump tweets or members of Parliament who support Brexit. 
+
+
+
+
+
+<br>
+
+##### Research Question and Hypothesis
+
+What are the different sentiments between tweets made by Members of Parliament who support Brexit vs those made by Trump in 2016-17? 
+
+* Are there different sentiments, tone, and levels of passion depending on which cause people support?
+
+Hypotheses:
+
+* Part 1
+  + Null Hypothesis: The stance on Brexit does not have any correlation with the sentiment of the tweet.
+  + Alternate Hypothesis: The sentiment of the tweet has correlation with the stance on Brexit. 
+* Part 2
+  + Null Hypothesis: The Starspace model will perform just as well as a general boosting machine using sentiment analysis to calculate the stance on Brexit.
+  + Alternate Hypothesis: A Starspace model will perform better than the general boosting machine using sentiment to calculate the stance on Brexit.
+* Part 3
+  + Null Hypothesis: The Trump Dataset and Brexit Dataset have the same sentiments
+  + Alternate Hypothesis: The Brexit Dataset different sentiments with the Trump Dataset.
+
+
+<br>
+
+#### Figure 1
+
+``` {r, warning=F,echo=F}
+#### Load Data ####
+election_data <- read.csv("JingjingsProject/data/tweets.csv")
+
+
+brexit_data <- read.csv("JingjingsProject/data/brexit.csv")
+
+#### Graph the Results ####
+library(ggplot2)
+
+accuracy_set <- data.frame(sets = c("Sentiment Function", "Starspace on Brexit", "Starspace on Election", "Sentiment Function", "Starspace on Brexit", "Starspace on Election"), accuracy = c(0.6861832, 0.9813546, 0.9857232, 0.5, 1, 1), calculation = c("accuracy", "accuracy", "accuracy", "f1", "f1", "f1"))
+
+ggplot(accuracy_set, aes(x = sets, y = accuracy, color = calculation)) +
+  geom_point(stat="identity", position = "dodge") +
+  labs(x = "Models and Datasets", y = "score", title = "Accuracy and F1 of Different Models of Different Datasets") +
+  theme(text = element_text(family = "Times New Roman"), axis.text.x = element_text(angle = 20))
+
+```
+
+This plot shows the accuracies of the two classification models on the two datasets. First, I used a simple sentiment function to split the `text` into "positive" or "negative". Then, I used the sentiment data as my variable in a general boosting machine to try and classify the Brexit stance as either `Leave` or `Stay`. This resulted in the model classifying everything as `Stay`. Second, I tried out a Starspace model, which takes the `text` and splits it into two categories through document embeddings. This model proved to be very accurate, so I took the model and tested it on the Election Dataset. The accuracy and f1 score were very similar for the two datasets, with the Election dataset having slightly higher accuracy.
+
+<br>
+
+#### Figure 2
+``` {r, echo = F, warning = F, fig.show="hold",out.width="50%", message = F}
+#### Graph 
+
+#### Get libraries ####
+library(tidytext)
+library(textdata)
+library(dplyr)
+library(stringr)
+
+#### Clean Data ####
+brexit_data3 <- brexit_data
+
+brexit_data3$plain <- strsplit(brexit_data3$text, "\\W")
+brexit_data3$plain <- sapply(brexit_data3$plain, FUN=function(x) paste(x, collapse = " "))
+brexit_data3$plain <- tolower(brexit_data3$plain)
+
+election_data_samp <- election_data
+
+election_data_samp$plain <- strsplit(election_data_samp$text, "\\W")
+election_data_samp$plain <- sapply(election_data_samp$plain, FUN=function(x) paste(x, collapse = " "))
+election_data_samp$plain <- tolower(election_data_samp$plain)
+
+election_data_samp <- election_data_samp %>%
+  dplyr::rename(screen_name = handle) %>%
+  filter(screen_name == "realDonaldTrump") %>%
+  select(screen_name, plain)
+
+# after cleaning election data
+
+brexit_data_samp <- brexit_data3 %>%
+  filter(label == "Leave") %>%
+  select(screen_name, plain)
+
+## random sample of 5000 rows
+brexit_3k <- slice_sample(brexit_data_samp, n = 3000)
+election_3k <- slice_sample(election_data_samp, n = 3000)
+
+## combine into 1 dataset
+word_data <- rbind(brexit_3k, election_3k)
+
+# get rid of urls
+word_data$plain <- str_replace_all(string = word_data$plain,
+                                            pattern = "https.+",
+                                            replacement = "")
+
+#### get sentiments ####
+
+#get_sentiments("nrc")
+
+
+#### Analysis ####
+tidy_books <- word_data %>%
+  unnest_tokens(word, plain)
+
+tidy_books <-tidy_books %>%
+  mutate(stance = ifelse(screen_name == "realDonaldTrump", "trump", "brexit"))
+
+## bar plot with x at diff emotions with different colors showing the count of each emotion
+# find 1 emotion per screen name no named trump
+no_trump_sentiments <- tidy_books %>%
+  filter(screen_name != "realDonaldTrump") %>%
+  inner_join(get_sentiments("nrc"))
+
+sentiment_concise <- no_trump_sentiments %>%
+  group_by(screen_name, sentiment) %>%
+  dplyr::summarize(count = n()) %>%
+  group_by(screen_name) %>%
+  summarize(sentiment = ifelse(count == max(count), sentiment,"")) %>%
+  filter(sentiment != "") %>%
+  slice_sample(n=1)
+
+
+#ggplot(sentiment_concise, aes(x=sentiment, fill = sentiment)) +
+  #geom_bar(aes(y = (..count..)/sum(..count..))) +
+  #labs(x = "Sentiment", y = "Percent of Total", 
+       #title = "Sentiments of Twitter Users who Support Brexit") +
+  #theme(text = element_text(family = "Courier"))
+
+
+#sentiments w/o condensing
+ggplot(no_trump_sentiments, aes(x=sentiment, fill = sentiment)) +
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  labs(x = "Sentiment", y = "Percent of Total", 
+       title = "Twitter Sentiments of Parliament Members who Support Brexit") +
+  theme(text = element_text(family = "Courier"), axis.text.x = element_text(angle = 20))
+  
+
+#trump sentiments
+trump_sentiments <- tidy_books %>%
+  filter(screen_name == "realDonaldTrump") %>%
+  inner_join(get_sentiments("nrc"))
+
+ggplot(trump_sentiments, aes(x=sentiment)) +
+  geom_bar(aes(y = (..count..)/sum(..count..)), fill = "deeppink4") +
+  labs(x = "Sentiment", y = "Percent of Total", 
+       title = "Trump Twitter Sentiments during Election") +
+  theme(text = element_text(family = "Courier"), axis.text.x = element_text(angle = 20))
+
+
+```
+<br>
+
+This plot compares sentiments Trump expresses in tweets vs sentiments pro-Brexit Parliament members express in tweets. I used the `nrc emotions` data table, which contains different words for each emotion, to classify my text. I wanted to see whether there would be different sentiments depending on the anti-globalization cause each person supports. The conclusion is that Trump's tweets contain more anger and disgust while the Brexit tweets contain more suprise and trust.
+
+
+<br>
+
+#### Figure 3.1
+```{r, echo=F}
+
+# graph a list of top 10 most popular words with anger and disgust (separate) and their counts
+#trump
+anger_words_t <- tidy_books %>% 
+  filter(screen_name == "realDonaldTrump") %>%
+  inner_join(nrc_anger) %>%
+  dplyr::count(word, sort = TRUE) %>%
+  slice_head(n = 10)
+
+
+#brexit
+anger_words_b <- tidy_books %>% 
+  filter(screen_name != "realDonaldTrump") %>%
+  inner_join(nrc_anger) %>%
+  dplyr::count(word, sort = TRUE) %>%
+  slice_head(n = 10)
+
+
+## plot of trump's top 10 anger words
+ggplot(anger_words_t, aes(x = reorder(word,(-n)), y = n)) +
+  geom_bar(stat = "summary",
+           fun = "mean",
+           fill = "indianred") +
+  labs(x = "Word", y = "Count", title = "Top 10 most common words Trump uses when angry") +
+  theme(text = element_text(family = "Courier"), axis.text.x = element_text(angle = 45))
+
+## plot of brexit's top 10 words
+ggplot(anger_words_b, aes(x=reorder(word,(-n)), y=n)) +
+  geom_bar(stat = "summary",
+           fun = "mean",
+           fill = "skyblue4") +
+  labs(x = "Word", y = "Count", title = "Top 10 most common anger words for Brexit Parliament supporters") +
+  theme(text = element_text(family = "Courier"), axis.text.x = element_text(angle = 45))
+
+```
+
+<br>
+
+These plots show the **Top 10 Most Common Words Expressing Anger** used by Brexit Parliament supporters and Trump. It should be noted that the words `vote, money, campaigning, and politics` are typically not thought of as words expressing anger. Trump uses very different words from Brexit Parliament supporters when expressing anger. 
+
+<br>
+
+#### Figure 3.2
+```{r, echo = F, message = F}
+## what words contributed to certain sentiments
+nrc_word_counts <- tidy_books %>%
+  inner_join(get_sentiments("nrc")) %>%
+  dplyr::count(word, sentiment, sort = TRUE) %>%
+  ungroup()
+
+nrc_word_counts %>%
+  group_by(sentiment) %>%
+  slice_max(n, n = 10) %>% 
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(n, word, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(x = "Contribution to sentiment",
+       y = NULL) 
+
+```
+<br>
+
+This plot shows the top 10 most common words seen in the text for each emotion. As we can see, there are words like `donald, vote, money, campaining, politics` that don't belong to their respective sentiment categories. 
+
+##### Discussion
+<br>
+
+I conclude that the sentiment or the tweet, whether positive or negative, does not have a strong correlation with the stance Parliament members have on Brexit. The data fails to reject the first null hypothesis. However, I can conclude that there are small differences in sentiments when 11 different sentiments are represented. Moreover, there are different word choices between different people who support anti-globalization. This supports the third alternate hypothesis. 
+
+While the Starspace model worked well, supporting the second alternate hypothesis, the last sentiment model did not work as well. There were many words that didn't actually express the sentiment shown, such as `vote` or `money`. 
+
+This research shows that despite the fact that people support one cause, the anti-globalization cause, they still have different sentiments and different beliefs about this cause. 
+
+This research could be continued by classifying and analyzing the reasons why each person supports anti-globalization, and we could compare whether there are different reasons behind their support. In addition, I could include more datasets from both Britain and America to see if anti-globalization reasons correlate with people in the same country.
+
+This research is very valuable but I think there could be a lot more done. The debate on *how much globalization is too much?* continues, and understanding the perspectives of people from the **globe** would be very valuable to working together to come up with a solution. This is the [GitHub]() link to my code and analysis.
