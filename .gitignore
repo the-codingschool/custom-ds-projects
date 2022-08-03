@@ -48,3 +48,6 @@ vignettes/*.pdf
 # markdown file after it got knit
 *visualization_learning.html
 
+globalization_project.html
+brexit.csv
+
