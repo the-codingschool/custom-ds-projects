@@ -1,0 +1,32 @@
+1st Test on Brexit data:
+  Description: Can you use the sentiment score (positive/negative) to calculate which side the Brexit data supports?
+  
+  Null Hypothesis: The stance on Brexit does not have correlation to the sentiment of the tweet.
+  Alternate Hypothesis: The sentiment of the tweet has correlation with the stance on Brexit. 
+  
+  The data failed to support the null hypothesis.
+  
+2nd Test on Brexit Data
+  Descriptiion: Can you use Starspace for text data to calculate which side the Brexit data supports?
+ Null Hypothesis: An unsupervised model will perform just as well as a general boosting machine using sentiment to calculate the stance on Brexit. 
+ Alternate Hypothesis: An unsupervised modelw ill perform better than the general boosting machine using sentiment to calculate the stance on Brexit.
+  
+see which one's more accurate
+
+The model supported the alternate hypothesis.
+
+
+3rd Test on Election Data
+  Description: Does the starspace work better on other datasets (not from Brexit)?
+  Null Hypothesis: They will work equally well.
+  Alternate Hypothesis: It will work better on the Trump dataset.
+  
+  The data supports the alternate hypothesis
+
+4th Test:
+  Description: see the differences between trump dataset and brexit dataset, less data, one user
+  Null Hypothesis: The Trump Dataset and Brexit Dataset have the same sentiments
+  Alternate Hypothesis: The Brexit Dataset different sentiments with the Trump Dataset.
+  
+
+
