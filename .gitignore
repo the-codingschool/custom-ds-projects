@@ -38,11 +38,11 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
+
+#R project file
+*.Rproj
 # R project file
-*.Rproj 
-# anything named .Rproj gets ignored
-
-
+*.Rprod
 *.DS_Store
 
 # markdown file after it got knit
