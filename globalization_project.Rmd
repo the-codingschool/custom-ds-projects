@@ -4,10 +4,12 @@ author: "Jingjing Luo"
 date: "2022-08-02"
 output: html_document
 ---
+<br>
+
 
 ##### Abstract
 
-This report looks into the differences between tweets made by British Parliament members who support Brexit and tweets made by Donald Trump during the 2016 election period. I tried to see whether certain types of language and sentiments correlate with different anti-globalization causes. First, I built a Starspace NLP model for both datasets that classifies **tweets** into *support for the cause* vs *against the cause* and compared the accuracies between the datasets. Then, I used the **text** to calculate and compare the sentiments of the groups. I found there to be a big difference in the type of language used between the two groups. In conclusion, there are some sentiment differences between people who support the same cause of anti-globalization.
+This report looks into the differences between tweets made by British Parliament members who support Brexit and tweets made by Donald Trump during the 2016 election period. These two topics are both anti-globalization events happening at similar times. I wanted to see whether different anti-globalization events correlate with different types of sentiments. First, I built a two models for both datasets that classifies **tweets** into *support* for the specific anti-globalization cause vs *against* the anti-globalization cause. Then, I used the **text** to calculate and compare the sentiments of the two groups. I found there to be a difference in the type of language used between the two groups. In conclusion, there are definitely some sentiment differences between people who support anti-globalization.
 
 
 
@@ -15,7 +17,7 @@ This report looks into the differences between tweets made by British Parliament
 <br>
 
 ##### Background
-I found the Election Dataset from [Kaggle](https://www.kaggle.com/datasets/benhamner/clinton-trump-tweets) and it consisted of ~3000 tweets from each of the 2016 US Presidential Election, Trump and Clinton. I found the Brexit Dataset from [Kaggle](https://www.kaggle.com/datasets/chadjinik/labelledbrexittweets) as well, and it consists of 60,941 tweets from 449 UK members of Parliament. I filtered out both datasets to be left with only Trump tweets or members of Parliament who support Brexit. 
+I found the Election Dataset from [Kaggle](https://www.kaggle.com/datasets/benhamner/clinton-trump-tweets) and it consisted of ~3000 tweets from each of the 2016 US Presidential Election candidates, Donald Trump and Hillary Clinton. I found the Brexit Dataset from [Kaggle](https://www.kaggle.com/datasets/chadjinik/labelledbrexittweets) as well, and it consists of 60,941 tweets related to Brexit from 449 UK members of Parliament. After my first analysis, I filtered out both datasets to be left with only tweets from Trump or tweets from Parliament members who support Brexit. 
 
 
 
@@ -25,18 +27,15 @@ I found the Election Dataset from [Kaggle](https://www.kaggle.com/datasets/benha
 
 ##### Research Question and Hypothesis
 
-What are the different sentiments between tweets made by Members of Parliament who support Brexit vs those made by Trump in 2016-17? 
+What are the sentiment differences between tweets made by Members of Parliament who support Brexit vs those made by Trump? 
 
 * Are there different sentiments, tone, and levels of passion depending on which cause people support?
 
 Hypotheses:
 
-* Part 1.1
-  + Null Hypothesis: The stance on Brexit does not have any correlation with the sentiment of the tweet.
-  + Alternate Hypothesis: The sentiment of the tweet has correlation with the stance on Brexit. 
-* Part 1.2
-  + Null Hypothesis: The Starspace model will perform just as well as a general boosting machine using sentiment analysis to calculate the stance on Brexit.
-  + Alternate Hypothesis: A Starspace model will perform better than the general boosting machine using sentiment to calculate the stance on Brexit.
+* Part 1
+  + Null Hypothesis: The stance British Parliament members have on Brexit does not have any correlation with the sentiment of the tweet.
+  + Alternate Hypothesis: The sentiment of the tweet has correlation with the stance British Parliament members have on Brexit. 
 * Part 2
   + Null Hypothesis: The Trump Dataset and Brexit Dataset have the same sentiments
   + Alternate Hypothesis: The Brexit Dataset different sentiments with the Trump Dataset.
@@ -60,12 +59,12 @@ accuracy_set <- data.frame(sets = c("Sentiment Function", "Starspace on Brexit",
 
 ggplot(accuracy_set, aes(x = sets, y = accuracy, color = calculation)) +
   geom_point(stat="identity", position = "dodge") +
-  labs(x = "Models and Datasets", y = "score", title = "Accuracy and F1 of Different Models of Different Datasets") +
+  labs(x = "Models and Datasets", y = "score", title = "Accuracy and F1 of Different Models for the Brexit and Trump Datasets") +
   theme(text = element_text(family = "Times New Roman"), axis.text.x = element_text(angle = 20))
 
 ```
 
-This plot shows the accuracies of the two classification models on the two datasets. First, I used a simple sentiment function to split the `text` into "positive" or "negative". Then, I used the sentiment data as my variable in a general boosting machine to try and classify the Brexit stance as either `Leave` or `Stay`. This resulted in the model classifying everything as `Stay` because there was little correlation between the sentiment and the stance. Second, I tried out a Starspace model, which takes the `text` and splits it into two categories through document embeddings. This model proved to be very accurate, so I took the model and tested it on the Election Dataset. The accuracy and f1 score were very similar for the two datasets, with the Election dataset having slightly higher accuracy.
+This plot shows the accuracies of the two classification models on the two datasets. First, I used a simple sentiment function to split the Brexit `text` into "positive" or "negative". Then, I used the sentiment data as my variable in a general boosting machine to try and classify the Brexit stance as either `Leave` or `Stay`. This resulted in the model classifying everything as `Stay` because there was little correlation between the sentiment and the stance. Therefore, I tried out another model for classification. This Starspace model takes the `text` and splits it into the `Leave` or `Stay` categories through document embeddings. This model proved to be very accurate, so I took the model and tested it on the Election Dataset. The accuracy and f1 score were very similar for the two datasets, with the Election dataset having slightly higher accuracy.
 
 <br>
 
@@ -165,20 +164,20 @@ trump_sentiments <- tidy_books %>%
 ggplot(trump_sentiments, aes(x=sentiment)) +
   geom_bar(aes(y = (..count..)/sum(..count..)), fill = "deeppink4") +
   labs(x = "Sentiment", y = "Percent of Total", 
-       title = "Trump Twitter Sentiments during Election") +
+       title = "Trump Twitter Sentiments") +
   theme(text = element_text(family = "Courier"), axis.text.x = element_text(angle = 20))
 
 
 ```
 <br>
 
-This plot compares sentiments Trump expresses in tweets vs sentiments pro-Brexit Parliament members express in tweets. I used the `nrc emotions` data table, which contains different words for each emotion, to classify my text. I wanted to see whether there would be different sentiments depending on the anti-globalization cause each person supports. The conclusion is that Trump's tweets contain more anger and disgust while the Brexit tweets contain more suprise and trust.
+This plot compares sentiments Trump expresses in tweets vs sentiments pro-Brexit Parliament members express in tweets. I used the `nrc emotions` data table to classify my text. The previous analysis showed that there was no correlation between sentiment and the two sides of **one** event, but I wanted to see whether there would be different sentiments between **different** anti-globalization events. The conclusion is that Trump's tweets contain more anger sentiments and disgust sentiments while the Brexit tweets contain more negative sentiments, suprise sentiments, and trust sentiments. However, the two plots are overall very similar.
 
 
 <br>
 
 #### Figure 3.1
-```{r, echo=F}
+```{r, echo=F, message = F, fig.show="hold", out.width="50%"}
 
 # graph a list of top 10 most popular words with anger and disgust (separate) and their counts
 #trump
@@ -214,14 +213,14 @@ ggplot(anger_words_b, aes(x=reorder(word,(-n)), y=n)) +
   geom_bar(stat = "summary",
            fun = "mean",
            fill = "skyblue4") +
-  labs(x = "Word", y = "Count", title = "Top 10 most common anger words for Brexit Parliament supporters") +
+  labs(x = "Word", y = "Count", title = "Top 10 most common anger words Brexit Parliament supporters use") +
   theme(text = element_text(family = "Courier"), axis.text.x = element_text(angle = 45))
 
 ```
 
 <br>
 
-These plots show the **Top 10 Most Common Words Expressing Anger** used by Brexit Parliament supporters and Trump. It should be noted that the words `vote, money, campaigning, and politics` are typically not thought of as words expressing anger. Trump uses very different words from Brexit Parliament supporters when expressing anger. 
+These plots show the **Top 10 Most Common Words Expressing Anger** used by Brexit Parliament supporters and Trump. Because the previous analysis of Brexit supporters' sentiments and Trump's sentiments were more similar than expected, I then tried to evaluate whether there are differences within each sentiment. Are the words used to express each sentiment different? The conclusion is that the words used truly are different, but it should be noted that the words `vote, money, campaigning, and politics` are typically not thought of as words expressing anger. They are possible mistakes in the "nrc" data table I used to classify the tweets. These *mistakes* likely affected the previous sentiment analysis to have such similar results between the two datasets. If the *mistakes* are removed, it can be seen that Trump uses more words expressing anger in his tweets. Overall, both sides use different words to express their sentiments.  
 
 <br>
 
@@ -247,17 +246,17 @@ nrc_word_counts %>%
 ```
 <br>
 
-This plot shows the top 10 most common words seen in the text for each emotion. As we can see, there are words like `donald, vote, money, campaining, politics` that don't belong to their respective sentiment categories. 
+This plot shows the top 10 most common words seen in the twitter text for each emotion. In this plot, we can clearly see more and more words that are misinterpreted affect the sentiment. There are words like `donald, vote, money, campaining, politics` that don't belong to their respective sentiment categories. 
 
 ##### Discussion
 <br>
 
-I conclude that the sentiment or the tweet, whether positive or negative, does not have a strong correlation with the stance Parliament members have on Brexit. The data fails to reject the first null hypothesis. However, I can conclude that there are small differences in sentiments when 11 different sentiments are represented. Moreover, there are different word choices between different people who support anti-globalization. This supports the third alternate hypothesis. 
+I can conclude that there is not a strong correlation between the tweet sentimient and the stance Parliament members have in the Brexit Dataset. The data fails to reject the first null hypothesis. However, I can conclude that there are sentiment differences between the **two** datasets. These slight sentiments differences are apparent when 11 different sentiments are represented. Moreover, the two groups of twitter uses have different word choices when expressing similar sentiments. This supports the second alternate hypothesis. 
 
-While the Starspace model worked well, supporting the second alternate hypothesis, the last sentiment model did not work as well. There were many words that didn't actually express the sentiment shown, such as `vote` or `money`. 
+Because the first null hypothesis was no rejected, I had to find another way to accurately classify the sentiments. The new Starspace model I used worked well with a 98% accuracy. 
 
-This research shows that despite the fact that people support one cause, the anti-globalization cause, they still have different sentiments and different beliefs about this cause. However, this research could be improved if I found more globalization specific datasets to analyze.
+This research shows that different people who support anti-globalization can have very different sentiments. This research could be improved if I found more globalization-specific datasets to analyze. In addition, the "nrc" data table I found to calculate the sentiments of each dataset misinterpreted many words, such as "vote" and "politics". This definitely affected the sentiment comparisons between the two datasets and made the plot less accurate. 
 
-This research could be continued by classifying and analyzing the reasons why each person supports anti-globalization, and we could compare whether there are different reasons behind their support. In addition, I could include more datasets from both Britain and America to see if anti-globalization reasons correlate with people in the same country, same social status, the same age group etc.
+I want to continue this research by testing whether or not there is a relationship between someone's social status and their reasons for supporting some anti-globalization causes. In addition, I want to continue to test the sentiments of different supporters using a better data table. Furthermore, I could include more datasets from both Britain and America to see if anti-globalization reasons correlate with people in the same country, same education level, or same age group etc.
 
-This research is very valuable but I think there could be a lot more done. The debate on *how much globalization is too much?* continues, and understanding the perspectives of people from the **globe** would be very valuable to working together to come up with a solution. This is the [GitHub]() link to my code and analysis.
+This research is very valuable but I think there could be a lot more done. The debate on *how much globalization is too much?* continues, and understanding the perspectives of people from the **globe** would be very valuable to working together to come up with a solution. This is the [GitHub](https://github.com/the-codingschool/custom-ds-projects) link to my code and analysis.
